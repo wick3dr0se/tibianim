@@ -1,9 +1,11 @@
 import
-  std/[asyncdispatch, httpclient],
+  std/[asyncdispatch, httpclient, sequtils],
   ../scraper
+
 
 var client = newAsyncHttpClient()
 
+#[
 # parse online players data
 let players = waitFor client.onlinePlayers()
 
@@ -44,7 +46,16 @@ if search.deaths.len() > 0:
 for c in search.alts:
   echo c.all
 
-let house = waitFor client.searchHouse("Thais")
+let houses = waitFor client.searchHouses("Thais")
 
-for h in house.all:
+for h in houses.all:
   echo(h)
+]#
+
+let
+  highscores = waitFor client.searchHighscores("all", "level")
+  hs = (highscores.number, highscores.name, highscores.voc, highscores.skill, highscores.exp)
+
+for i in 0..<hs[0].len:
+  if i < 10:
+    echo(hs[0][i], ". ", hs[1][i], " | ", hs[2][i], " | Lvl: ", hs[3][i], " Exp: ", hs[4][i])

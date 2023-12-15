@@ -48,8 +48,8 @@ cmd.addSlash("online") do ():
       fields: some @[
         EmbedField(
           name: fmt"""
-            Player Count: `{players.count}`
-            Average Level: `{players.avgLvl}`
+            > Player Count: `{players.count}`
+            > Average Level: `{players.avgLvl}`
           """
         ),
         EmbedField(
@@ -65,7 +65,7 @@ cmd.addSlash("house") do (town: string):
   await i.deferResponse()
 
   let
-    houses = await client.searchHouse(town)
+    houses = await client.searchHouses(town)
     allHouses = join(houses.all, "\n")
 
 #House Count: `{houses.count}`
@@ -109,6 +109,33 @@ cmd.addSlash("character") do (name: string):
           value: join(searchAlts, "\n")
         )
       ]
+    )]
+  )
+
+cmd.addSlash("highscores") do (vocation: string, skillType: string, amount: int):
+  ## List highscores
+  await i.deferResponse()
+
+  let
+    highscores = await client.searchHighscores(vocation, skillType)
+    hs = (highscores.number, highscores.name, highscores.skill, highscores.exp)
+    
+  var h: string
+
+  for i in 0..<hs[0].len:
+    if i < amount:
+      h &= $hs[0][i] & ". " & hs[1][i] & " " & $hs[2][i]
+
+      if skillType == "level":
+        h &= " " & $hs[3][i] & "\n"
+      else:
+        h &= "\n"
+
+  discard await i.followup(
+    embeds = @[Embed(
+      title: some "Highscores - Top " & $amount,
+      description: some h,
+      color: some 0x7789ec
     )]
   )
 

@@ -25,6 +25,13 @@ type
     size*: seq[int]
     state*: seq[string]
     all*: seq[string]
+  Highscores = object
+    number*: seq[int]
+    name*: seq[string]
+    voc*: seq[string]
+    skill*: seq[int]
+    exp*: seq[string]
+    all*: seq[string]
 
 const URI = "https://tibiantis.online"
 
@@ -42,13 +49,13 @@ proc onlinePlayers*(client: AsyncHttpClient): Future[Players] {.async.} =
   let
     content = await client.getContent(URI & "/?page=whoisonline")
     html = parseHtml(content)
-    chars = html.findAll("table")[2]
+    eles = html.findAll("table")[2]
 
   players.voc = newSeq[string](5)
 
-  for c in chars:
+  for e in eles:
     if i > 1:
-      let (name, voc, lvl) = (c[1].innerText(), c[3].innertext(), parseInt(c[5].innertext()))
+      let (name, voc, lvl) = (e[1].innerText(), e[3].innertext(), parseInt(e[5].innertext()))
 
       case voc
       of "None":
@@ -91,16 +98,16 @@ proc searchPlayer*(client: AsyncHttpClient, name: string): Future[Player] {.asyn
   let
     content = await client.getContent(URI & "/?page=character&name=" & name)
     html = parseHtml(content)
-    tables = html.findAll("table")
-    info = tables[2].toSeq()
+    eles = html.findAll("table")
+    info = eles[2].toSeq()
 
-  if tables.len() > 6:
+  if eles.len() > 6:
     # deaths table exist
     let
-      deaths = tables[3].toSeq()
+      deaths = eles[3].toSeq()
     
-    created = tables[4].toSeq()
-    characters = tables[5].toSeq()
+    created = eles[4].toSeq()
+    characters = eles[5].toSeq()
 
     for d in deaths:
       if n > 0:
@@ -108,8 +115,8 @@ proc searchPlayer*(client: AsyncHttpClient, name: string): Future[Player] {.asyn
         player.deaths.add(death)
       n += 1
   else:
-    created = tables[3].toSeq()
-    characters = tables[4].toSeq()
+    created = eles[3].toSeq()
+    characters = eles[4].toSeq()
 
   for i in info[1..^1]:
     let (key, val) = (i[0].innerText(), i[1].innerText())
@@ -132,12 +139,12 @@ proc searchPlayer*(client: AsyncHttpClient, name: string): Future[Player] {.asyn
   
   return player
 
-proc searchHouse*(client: AsyncHttpClient, town: string): Future[Houses] {.async.} =
+proc searchHouses*(client: AsyncHttpClient, town: string): Future[Houses] {.async.} =
   let
     content = await client.getContent(URI & "/?page=houses&town=" & town & "&gh=0&status=1&id=1&x=83&y=21")
     html = parseHtml(content)
-    tables = html.findAll("td")
-    houseInfo = tables[15..^2]
+    eles = html.findAll("td")
+    houseInfo = eles[15..^2]
 
   var houses: Houses
 
@@ -167,3 +174,56 @@ proc searchHouse*(client: AsyncHttpClient, town: string): Future[Houses] {.async
     )
   
   return houses
+
+proc searchHighscores*(client: AsyncHttpClient, vocation: string, skill: string): Future[Highscores] {.async.} =
+  var
+    highscores: Highscores
+    vocID: int
+    cols: int
+    offset: int
+
+  case vocation
+  of "druid": vocID = 1
+  of "knight": vocID = 2
+  of "paladin": vocID = 3
+  of "sorcerer": vocID = 4
+
+  if skill == "level":
+    cols = 5
+    offset = 11
+  else:
+    cols = 4
+    offset = 10
+
+  let
+    content = await client.getContent(URI & "?page=highscores&stat=" & skill & "&voc=" & $vocID & "&c.x=41&c.y=24")
+    html = parseHtml(content)
+    eles = html.findAll("td")
+    highscore = eles[offset..^2]
+
+  for i in 0..<highscore.len div cols:
+    let
+      index = i * cols
+      number = highscore[index].innerText().parseInt()
+      name = highscore[index + 1].innerText()
+      voc = highscore[index + 2].innerText()
+      skillLvl = highscore[index + 3].innerText().parseInt()
+    
+    var exp: string
+
+    if skill == "level":
+      exp = highscore[index + 4].innerText()
+
+    highscores.number.add(number)
+    highscores.name.add(name)
+    highscores.voc.add(voc)
+    highscores.skill.add(skillLvl)
+    highscores.exp.add(exp)
+
+    highscores.all.add(
+      $number & ". " & name & "\n" &
+      "Vocation: " & voc & "\n" &
+      "Skill Level: " & $skillLvl & "\n"
+    )
+  
+  return highscores
