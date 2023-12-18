@@ -17,6 +17,11 @@ type
     avgLvl*: float
     count*: int
     voc*: seq[string]
+    topRook*: (string, int)
+    topKnight*: (string, int)
+    topPaladin*: (string, int)
+    topSorcerer*: (string, int)
+    topDruid*: (string, int)
   Houses = object
     number*: seq[int]
     name*: seq[string]
@@ -38,12 +43,7 @@ const URI = "https://tibiantis.online"
 proc onlinePlayers*(client: AsyncHttpClient): Future[Players] {.async.} =
   var
     players: Players
-    i: int
-    noneCount: int
-    knightCount: int
-    paladinCount: int
-    sorcererCount: int
-    druidCount: int
+    i, rookCnt, knightCnt, paladinCnt, sorcererCnt, druidCnt: int
     lvlSum: int
 
   let
@@ -59,20 +59,35 @@ proc onlinePlayers*(client: AsyncHttpClient): Future[Players] {.async.} =
 
       case voc
       of "None":
-        noneCount += 1
-        players.voc[0] = "None: " & $noneCount
+        rookCnt += 1
+        players.voc[0] = "Rook: " & $rookCnt
+
+        if players.topRook[1] < lvl:
+          players.topRook = (name, lvl)
       of "Knight", "Elite Knight":
-        knightCount += 1
-        players.voc[1] = "Knights: " & $knightCount
+        knightCnt += 1
+        players.voc[1] = "Knights: " & $knightCnt
+
+        if players.topKnight[1] < lvl:
+          players.topKnight = (name, lvl)
       of "Paladin", "Royal Paladin":
-        paladinCount += 1
-        players.voc[2] = "Paladins: " & $paladinCount
+        paladinCnt += 1
+        players.voc[2] = "Paladins: " & $paladinCnt
+
+        if players.topPaladin[1] < lvl:
+          players.topPaladin = (name, lvl)
       of "Sorcerer", "Master Sorcerer":
-        sorcererCount += 1
-        players.voc[3] = "Sorcerers: " & $sorcererCount
+        sorcererCnt += 1
+        players.voc[3] = "Sorcerers: " & $sorcererCnt
+
+        if players.topSorcerer[1] < lvl:
+          players.topSorcerer = (name, lvl)
       of "Druid", "Elder Druid":
-        druidCount += 1
-        players.voc[4] = "Druids: " & $druidCount
+        druidCnt += 1
+        players.voc[4] = "Druids: " & $druidCnt
+
+        if players.topDruid[1] < lvl:
+          players.topDruid = (name, lvl)
       else: discard
 
       players.all.add(name & " " & voc & " " & $lvl)

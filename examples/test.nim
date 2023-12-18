@@ -5,15 +5,16 @@ import
 
 var client = newAsyncHttpClient()
 
-#[
 # parse online players data
 let players = waitFor client.onlinePlayers()
 
-# list all players
+echo players.topRook
+echo players.topKnight
+
 #[
+# list all players
 for player in players.all:
   echo(player)
-]#
 
 # list online players
 echo("Players Online ", players.count)
@@ -27,7 +28,9 @@ echo()
 # show averge level
 echo("Average Level ", players.avgLvl)
 echo()
+]#
 
+#[
 # qiery player "papers"
 let search = waitFor client.searchPlayer("papers")
 
@@ -45,12 +48,13 @@ if search.deaths.len() > 0:
 # list account alt characters
 for c in search.alts:
   echo c.all
+]#
 
+#[
 let houses = waitFor client.searchHouses("Thais")
 
 for h in houses.all:
   echo(h)
-]#
 
 let
   highscores = waitFor client.searchHighscores("all", "level")
@@ -59,3 +63,4 @@ let
 for i in 0..<hs[0].len:
   if i < 10:
     echo(hs[0][i], ". ", hs[1][i], " | ", hs[2][i], " | Lvl: ", hs[3][i], " Exp: ", hs[4][i])
+]#

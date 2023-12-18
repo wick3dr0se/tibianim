@@ -47,14 +47,26 @@ cmd.addSlash("online") do ():
       color: some 0x7789ec,
       fields: some @[
         EmbedField(
-          name: fmt"""
-            > Player Count: `{players.count}`
-            > Average Level: `{players.avgLvl}`
-          """
+          name: "Player Count",
+          value: $players.count
+        ),
+        EmbedField(
+          name: "Average Level",
+          value: $players.avgLvl
         ),
         EmbedField(
           name: "Vocations",
-          value: vocations
+          value: vocations & "\n"
+        ),
+        EmbedField(
+          name: "Top",
+          value: &"""
+Rook: {players.topRook[0]} {players.topRook[1]}
+Knight: {players.topKnight[0]} {players.topKnight[1]}
+Paladin: {players.topPaladin[0]} {players.topPaladin[1]}
+Sorcerer: {players.topSorcerer[0]} {players.topSorcerer[1]}
+Druid: {players.topDruid[0]} {players.topDruid[1]}
+"""
         )
       ]
     )]
