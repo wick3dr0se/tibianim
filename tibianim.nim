@@ -40,6 +40,12 @@ cmd.addSlash("online") do ():
   let
     players = await client.onlinePlayers()
     vocations = join(players.voc, "\n")
+   #topVocations = join(players.topVoc, "\n")
+  
+  var topVocations: string
+
+  for voc in players.topVoc:
+    topVocations &= voc[0] & voc[1] & " " & $voc[2] & "\n"
 
   discard await i.followup(
     embeds = @[Embed(
@@ -60,13 +66,7 @@ cmd.addSlash("online") do ():
         ),
         EmbedField(
           name: "Top",
-          value: &"""
-Rook: {players.topRook[0]} {players.topRook[1]}
-Knight: {players.topKnight[0]} {players.topKnight[1]}
-Paladin: {players.topPaladin[0]} {players.topPaladin[1]}
-Sorcerer: {players.topSorcerer[0]} {players.topSorcerer[1]}
-Druid: {players.topDruid[0]} {players.topDruid[1]}
-"""
+          value: topVocations
         )
       ]
     )]

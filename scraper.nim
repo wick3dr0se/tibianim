@@ -17,11 +17,7 @@ type
     avgLvl*: float
     count*: int
     voc*: seq[string]
-    topRook*: (string, int)
-    topKnight*: (string, int)
-    topPaladin*: (string, int)
-    topSorcerer*: (string, int)
-    topDruid*: (string, int)
+    topVoc*: seq[(string, string, int)]
   Houses = object
     number*: seq[int]
     name*: seq[string]
@@ -44,6 +40,7 @@ proc onlinePlayers*(client: AsyncHttpClient): Future[Players] {.async.} =
   var
     players: Players
     i, rookCnt, knightCnt, paladinCnt, sorcererCnt, druidCnt: int
+    eliteKnightCnt, royalPaladinCnt, masterSorcererCnt, elderDruidCnt: int
     lvlSum: int
 
   let
@@ -51,7 +48,8 @@ proc onlinePlayers*(client: AsyncHttpClient): Future[Players] {.async.} =
     html = parseHtml(content)
     eles = html.findAll("table")[2]
 
-  players.voc = newSeq[string](5)
+  players.voc = newSeq[string](9)
+  players.topVoc = newSeq[(string, string, int)](9)
 
   for e in eles:
     if i > 1:
@@ -62,38 +60,62 @@ proc onlinePlayers*(client: AsyncHttpClient): Future[Players] {.async.} =
         rookCnt += 1
         players.voc[0] = "Rook: " & $rookCnt
 
-        if players.topRook[1] < lvl:
-          players.topRook = (name, lvl)
-      of "Knight", "Elite Knight":
+        if players.topVoc[0][2] < lvl:
+          players.topVoc[0] = ("Rook: ", name, lvl)
+      of "Knight":
         knightCnt += 1
         players.voc[1] = "Knights: " & $knightCnt
 
-        if players.topKnight[1] < lvl:
-          players.topKnight = (name, lvl)
-      of "Paladin", "Royal Paladin":
+        if players.topVoc[1][2] < lvl:
+          players.topVoc[1] = ("Knight: ", name, lvl)
+      of "Elite Knight":
+        eliteKnightCnt += 1
+        players.voc[2] = "Elite Knights: " & $eliteKnightCnt
+
+        if players.topVoc[2][2] < lvl:
+          players.topVoc[2] = ("Elite Knight: ", name, lvl)
+      of "Paladin":
         paladinCnt += 1
-        players.voc[2] = "Paladins: " & $paladinCnt
+        players.voc[3] = "Paladins: " & $paladinCnt
 
-        if players.topPaladin[1] < lvl:
-          players.topPaladin = (name, lvl)
-      of "Sorcerer", "Master Sorcerer":
+        if players.topVoc[3][2] < lvl:
+          players.topVoc[3] = ("Paladin: ", name, lvl)
+      of "Royal Paladin":
+        royalPaladinCnt += 1
+        players.voc[4] = "Royal Paladins: " & $royalPaladinCnt
+
+        if players.topVoc[4][2] < lvl:
+          players.topVoc[4] = ("Royal Paladin: ", name, lvl)
+      of "Sorcerer":
         sorcererCnt += 1
-        players.voc[3] = "Sorcerers: " & $sorcererCnt
+        players.voc[5] = "Sorcerers: " & $sorcererCnt
 
-        if players.topSorcerer[1] < lvl:
-          players.topSorcerer = (name, lvl)
-      of "Druid", "Elder Druid":
+        if players.topVoc[5][2] < lvl:
+          players.topVoc[5] = ("Sorcerer: ", name, lvl)
+      of "Master Sorcerer":
+        masterSorcererCnt += 1
+        players.voc[6] = "Master Sorcerers: " & $masterSorcererCnt
+
+        if players.topVoc[6][2] < lvl:
+          players.topVoc[6] = ("Master Sorcerer: ", name, lvl)
+      of "Druid":
         druidCnt += 1
-        players.voc[4] = "Druids: " & $druidCnt
+        players.voc[7] = "Druids: " & $druidCnt
 
-        if players.topDruid[1] < lvl:
-          players.topDruid = (name, lvl)
+        if players.topVoc[7][2] < lvl:
+          players.topVoc[7] = ("Druid: ", name, lvl)
+      of "Elder Druid":
+        elderDruidCnt += 1
+        players.voc[8] = "Elder Druids: " & $elderDruidCnt
+
+        if players.topVoc[8][2] < lvl:
+          players.topVoc[8] = ("Elder Druid: ", name, lvl)
       else: discard
-
-      players.all.add(name & " " & voc & " " & $lvl)
 
       players.name.add(name)
       players.lvl.add(lvl)
+      players.all.add(name & " " & voc & " " & $lvl)
+
       lvlSum += lvl
     i += 1
 

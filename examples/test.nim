@@ -8,8 +8,11 @@ var client = newAsyncHttpClient()
 # parse online players data
 let players = waitFor client.onlinePlayers()
 
-echo players.topRook
-echo players.topKnight
+for voc in players.topVoc:
+  echo voc[1]
+
+for voc in players.voc:
+  echo voc
 
 #[
 # list all players
